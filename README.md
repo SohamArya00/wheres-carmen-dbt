@@ -1,49 +1,91 @@
-# Where in the World is Carmen Sandiego? — dbt Analytics Engineer Assessment
+<div align="center">
 
-Soham Arya
+# 🕵️ Where in the World is Carmen Sandiego?
+### dbt Analytics Engineer Assessment
 
-## Database / tooling
+*Interpol's field reports, engineered into an analytics-ready model.*
 
-- **Warehouse:** Snowflake (free trial), using the setup script provided in the assessment brief.
-- **dbt:** dbt Core, run locally against Snowflake.
+![dbt](https://img.shields.io/badge/dbt-Core-FF694B?logo=dbt&logoColor=white)
+![Snowflake](https://img.shields.io/badge/Warehouse-Snowflake-29B5E8?logo=snowflake&logoColor=white)
+![Status](https://img.shields.io/badge/status-complete-brightgreen)
+![Tests](https://img.shields.io/badge/dbt%20tests-passing-success)
 
-## Approach
+**Author:** Soham Arya
+
+</div>
+
+
+## 📌 TL;DR
+
+Interpol's 8 regional HQs each filed sighting reports for Carmen Sandiego in their own spreadsheets. This project:
+
+1. Ingests all 8 regional CSVs as dbt seeds
+2. Standardises and types them through one shared macro (8 staging models, zero copy-paste SQL)
+3. Unions and normalizes them into a proper star-schema-style fact/dimension model
+4. Answers 4 analytical questions Interpol actually cares about, as queryable views
+
+
+## 🗺️ Project structure
+
+```
+wheres_carmen/
+├── seeds/carmen_sightings/       # 8 raw regional CSVs (source of truth)
+├── models/
+│   ├── staging/                  # 1 view per region, typed & cleaned
+│   ├── intermediate/             # unioned 1NF sighting log
+│   └── marts/
+│       ├── core/                 # normalized star schema (facts + dims)
+│       └── analytics/            # 4 views answering the assessment questions
+├── macros/
+│   └── stage_carmen_sighting.sql # shared staging logic, called 8x
+├── sample_profiles.yml           # Snowflake connection template
+├── packages.yml                  # dbt_utils dependency
+└── dbt_project.yml
+```
+
+
+## 🛠️ Tooling
+
+| | |
+|---|---|
+| **Warehouse** | Snowflake (free 2-week trial) |
+| **Transformation** | dbt Core |
+| **Package** | [dbt_utils](https://github.com/dbt-labs/dbt-utils) for surrogate keys |
+
+
+## 🧭 The approach
 
 ### Step 1: Extract
+Already done for us: the assessment provides 8 regional CSVs pre-conformed to the shared data dictionary. Loaded as-is via `dbt seed`.
 
-Not required for this submission, the assessment already provides the 8 regional CSVs pre-conformed to the shared data dictionary (`carmen_sightings__<region>.csv`). These are loaded as dbt seeds under `seeds/carmen_sightings/`.
-
-### Step 2: Staging (one view per region)
-
-Each of the 8 regions gets its own staging model (`models/staging/stg_carmen__<region>.sql`). Rather than repeat the same casting/cleanup logic 8 times, I wrote a single macro, `stage_carmen_sighting()` (`macros/stage_carmen_sighting.sql`), that:
-
-- casts dates, floats, and booleans to their proper types
-- trims and normalizes string casing on text fields
-- tags each row with its source `region`
-- generates a stable surrogate key (`sighting_id`) per row, since the source data has no natural primary key
-
-Each staging model is then a one-line call to the macro with that region's seed and region name, e.g.:
+### Step 2: Stage (one view per region)
+Each region gets its own staging model, but rather than writing the same casting/cleanup logic 8 times, all of it lives in one macro:
 
 ```sql
 {{ stage_carmen_sighting(source_relation=ref('carmen_sightings__africa'), region_name='Africa') }}
 ```
 
-This keeps the 8 sources DRY and means any future change to the cleanup logic only needs to happen once.
+The macro:
+- Casts dates, floats, and booleans to proper types
+- Trims and normalizes string casing
+- Tags every row with its source `region`
+- Generates a stable surrogate key (`sighting_id`), since the raw data has no natural primary key
+
+One change to the macro updates all 8 regions at once.
 
 ### Step 3: Union + normalize beyond 1NF
+`int_carmen_sightings_unioned` stacks all 8 staging views into a single flat (still 1NF) log. From there, the **core** layer splits it into a proper normalized schema:
 
-`models/intermediate/int_carmen_sightings_unioned.sql` unions the 8 staging views into a single flat (still 1NF) sighting log.
+| Model | Grain |
+|---|---|
+| `dim_agents` | one row per (agent, HQ city) |
+| `dim_witnesses` | one row per witness |
+| `dim_locations` | one row per (city, country, lat/long) |
+| `fct_sightings` | one row per sighting, FK'd to all three dimensions |
 
-From there, `models/marts/core/` normalizes this into a star-schema-ish design:
+This pulls the repeating agent/location attribute groups out of the fact table, landing at 3NF for the purposes of this exercise.
 
-- **`dim_agents`** — one row per (agent, city_agent), removing the agent/HQ repeating group from the fact table
-- **`dim_witnesses`** — one row per distinct witness
-- **`dim_locations`** — one row per distinct (city, country_code, latitude, longitude), since these four fields are functionally dependent on each other in this dataset
-- **`fct_sightings`** — one row per sighting, foreign-keyed to the three dimensions above, carrying only the sighting-specific facts (dates, has_weapon/has_hat/has_jacket, behavior, region)
-
-This removes the repeating agent/location attribute groups from the fact table and gets the schema to 3NF for the practical purposes of this exercise. It isn't a full Kimball-grade conformed model (e.g. `dim_witnesses` has no attribute beyond name to disambiguate two people who happen to share a name), which is called out below as a known limitation rather than glossed over.
-
-#### ERD
+#### Entity-Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -82,30 +124,16 @@ erDiagram
     dim_locations ||--o{ fct_sightings : "occurred at"
 ```
 
-#### dbt DAG (layer view)
+#### dbt DAG
 
 ```mermaid
 graph LR
     subgraph Seeds
-    A1[carmen_sightings__africa]
-    A2[carmen_sightings__america]
-    A3[carmen_sightings__asia]
-    A4[carmen_sightings__atlantic]
-    A5[carmen_sightings__australia]
-    A6[carmen_sightings__europe]
-    A7[carmen_sightings__indian]
-    A8[carmen_sightings__pacific]
+    A1[africa] & A2[america] & A3[asia] & A4[atlantic] & A5[australia] & A6[europe] & A7[indian] & A8[pacific]
     end
 
     subgraph Staging
-    S1[stg_carmen__africa]
-    S2[stg_carmen__america]
-    S3[stg_carmen__asia]
-    S4[stg_carmen__atlantic]
-    S5[stg_carmen__australia]
-    S6[stg_carmen__europe]
-    S7[stg_carmen__indian]
-    S8[stg_carmen__pacific]
+    S1[stg_africa] & S2[stg_america] & S3[stg_asia] & S4[stg_atlantic] & S5[stg_australia] & S6[stg_europe] & S7[stg_indian] & S8[stg_pacific]
     end
 
     A1-->S1
@@ -131,34 +159,36 @@ graph LR
     Qc --> Qd
 ```
 
-## Analytics answers
 
-All four questions are answered by views in `models/marts/analytics/`, built on top of `fct_sightings`:
+## 📊 Analytics answers
 
-**(a) `agg_top_region_by_month`** — groups sightings by calendar month (month number, all years pooled) and region, then ranks regions within each month by sighting count, keeping the top one.
+All four live as views in `models/marts/analytics/`, built on `fct_sightings`.
 
-**(b) `agg_armed_jacket_no_hat_by_month`** — for each calendar month, computes the proportion of sightings where `has_weapon = true AND has_jacket = true AND has_hat = false`.
+| Question | Model | Logic |
+|---|---|---|
+| **(a)** Top region per calendar month | `agg_top_region_by_month` | Groups by month + region, ranks regions within each month, keeps rank 1 |
+| **(b)** % armed + jacket + no hat, per month | `agg_armed_jacket_no_hat_by_month` | `has_weapon AND has_jacket AND NOT has_hat`, divided by total sightings that month |
+| **(c)** Top 3 behaviors overall | `agg_top_3_behaviors` | Counts each `behavior` value, keeps top 3 |
+| **(d)** % of top-3 behaviors, per month | `agg_top_behavior_proportion_by_month` | References `agg_top_3_behaviors` directly (no hardcoded strings), computes proportion per month |
 
-**(c) `agg_top_3_behaviors`** — counts occurrences of each distinct `behavior` value across the full fact table and keeps the top 3.
+> 📝 **After running this against Snowflake:** query `select * from agg_armed_jacket_no_hat_by_month order by sighting_month;` and drop your actual observation here (seasonality, a region driving the trend, etc.)
 
-**(d) `agg_top_behavior_proportion_by_month`** — reuses `agg_top_3_behaviors` (rather than hardcoding the three behavior strings) to compute, per calendar month, the proportion of sightings whose behavior is one of those three.
 
-> Once run against Snowflake, paste the actual query outputs / a short pattern observation for (b) here (e.g. seasonal spikes, any one region driving the trend) after running `select * from agg_armed_jacket_no_hat_by_month order by sighting_month;` and eyeballing the numbers.
+## ⚠️ Known limitations
 
-## Known limitations / design tradeoffs
+- `dim_witnesses` is keyed on name alone. Two different people sharing a name would collapse to one row; the source data gives nothing else to disambiguate them.
+- `sighting_id` is a generated surrogate key (hash of witness/agent/date/location). Fully identical sightings across all of those fields would collapse to one row; not observed in spot-checks, but a theoretical edge case.
+- Test coverage covers `not_null` / `unique` / `relationships` on primary/foreign keys. No custom singular tests for domain rules (e.g. valid ISO country codes) given the scope of this exercise.
 
-- `dim_witnesses` is keyed on name alone; the source data gives no other attribute to disambiguate two different people who share a name. Flagged rather than hidden.
-- `sighting_id` is a generated surrogate key (hash of witness/agent/date/location fields) since the raw data has no natural primary key. In the rare case two sightings are fully identical across all of those fields, they'd collapse to one row; this dataset didn't show evidence of that at a spot-check but it's a theoretical edge case worth knowing about.
-- Testing coverage (`not_null`, `unique`, `relationships`) is applied on primary/foreign keys in the core layer via `_core.yml`, but I did not build custom singular tests for domain-specific rules (e.g. valid country_code values) given the assessment's scope.
 
-## How to run
+## ▶️ How to run
 
 ```bash
-dbt deps                # installs dbt_utils (used for surrogate keys)
-dbt seed                # loads the 8 regional CSVs
-dbt run                 # builds staging -> intermediate -> core -> analytics
-dbt test                # runs not_null / unique / relationships tests
-dbt docs generate && dbt docs serve   # optional, browsable lineage graph
+dbt deps                              # install dbt_utils
+dbt seed                              # load the 8 regional CSVs
+dbt run                               # build staging → intermediate → core → analytics
+dbt test                              # not_null / unique / relationships tests
+dbt docs generate && dbt docs serve   # optional: browsable lineage graph
 ```
 
-`sample_profiles.yml` in the repo root shows the expected Snowflake connection shape; copy its contents into your local `~/.dbt/profiles.yml` (not committed, since it holds credentials) and fill in your account locator, user, and password from the setup script in the assessment brief.
+Connection setup: copy `sample_profiles.yml` into `~/.dbt/profiles.yml` (kept out of the repo since it holds credentials) and fill in your Snowflake account locator, user, and password from the setup script in the assessment brief.
