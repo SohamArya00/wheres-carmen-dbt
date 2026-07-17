@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: stg_carmen__africa
+    description: "Africa region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+      - name: region
+        tests: [not_null]
+  - name: stg_carmen__america
+    description: "Americas region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+  - name: stg_carmen__asia
+    description: "Asia region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+  - name: stg_carmen__atlantic
+    description: "Atlantic Islands region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+  - name: stg_carmen__australia
+    description: "Australia region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+  - name: stg_carmen__europe
+    description: "Europe region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+  - name: stg_carmen__indian
+    description: "Indian Ocean region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+  - name: stg_carmen__pacific
+    description: "Pacific region sightings, typed and cleaned via the stage_carmen_sighting macro."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]

@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: dim_agents
+    description: "One row per Interpol field agent and the HQ city they report to."
+    columns:
+      - name: agent_id
+        tests: [unique, not_null]
+      - name: agent
+        tests: [not_null]
+
+  - name: dim_witnesses
+    description: "One row per witness. Note: name-only, no other disambiguating attribute exists in the source data."
+    columns:
+      - name: witness_id
+        tests: [unique, not_null]
+
+  - name: dim_locations
+    description: "One row per distinct sighting location (city / country / coordinates)."
+    columns:
+      - name: location_id
+        tests: [unique, not_null]
+
+  - name: fct_sightings
+    description: "Central fact table, one row per sighting, foreign-keyed to dim_agents, dim_witnesses and dim_locations."
+    columns:
+      - name: sighting_id
+        tests: [unique, not_null]
+      - name: agent_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_agents')
+              field: agent_id
+      - name: witness_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_witnesses')
+              field: witness_id
+      - name: location_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_locations')
+              field: location_id
+      - name: behavior
+        tests: [not_null]

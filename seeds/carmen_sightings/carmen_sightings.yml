@@ -1,0 +1,98 @@
+version: 2
+
+seeds:
+  - name: carmen_sightings__africa
+    description: "Raw agent field reports from the Africa regional HQ (Casablanca/Johannesburg etc.), 1NF, already conformed to the common data dictionary."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__america
+    description: "Raw agent field reports from the Americas regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__asia
+    description: "Raw agent field reports from the Asia regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__atlantic
+    description: "Raw agent field reports from the Atlantic Islands regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__australia
+    description: "Raw agent field reports from the Australia regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__europe
+    description: "Raw agent field reports from the Europe regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__indian
+    description: "Raw agent field reports from the Indian Ocean regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean
+
+  - name: carmen_sightings__pacific
+    description: "Raw agent field reports from the Pacific regional HQ."
+    config:
+      column_types:
+        date_witness: date
+        date_agent: date
+        latitude: float
+        longitude: float
+        has_weapon: boolean
+        has_hat: boolean
+        has_jacket: boolean

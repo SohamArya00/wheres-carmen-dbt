@@ -1,0 +1,37 @@
+name: 'wheres_carmen'
+version: '1.0.0'
+config-version: 2
+
+profile: 'wheres_carmen'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  wheres_carmen:
+    carmen_sightings:
+      +schema: raw
+      +quote_columns: false
+
+models:
+  wheres_carmen:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      core:
+        +schema: core
+        +materialized: table
+      analytics:
+        +schema: analytics
+        +materialized: view

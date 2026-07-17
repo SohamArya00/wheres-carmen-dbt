@@ -1,0 +1,18 @@
+# This file is a TEMPLATE. Copy the contents into ~/.dbt/profiles.yml
+# (NOT into the git repo -- profiles.yml holds credentials and should stay local / gitignored)
+
+wheres_carmen:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: <your_account_locator>       # e.g. ab12345.ap-southeast-2
+
+      user: wheres_carmen_user
+      password: <your_password>
+      role: wheres_carmen_role
+      database: wheres_carmen_db
+      warehouse: wheres_carmen_wh
+      schema: dbt_soham                     # dbt will build models/seeds under this schema
+      threads: 4
+      client_session_keep_alive: false

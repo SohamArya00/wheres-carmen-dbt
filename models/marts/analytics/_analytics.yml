@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: agg_top_region_by_month
+    description: "Answers Q(a): the highest-sighting-count region for each calendar month, aggregated across all years."
+
+  - name: agg_armed_jacket_no_hat_by_month
+    description: "Answers Q(b): proportion of sightings per calendar month where Carmen is armed, wearing a jacket, and not wearing a hat."
+
+  - name: agg_top_3_behaviors
+    description: "Answers Q(c): the three most frequently occurring behaviors across the entire dataset."
+
+  - name: agg_top_behavior_proportion_by_month
+    description: "Answers Q(d): proportion of sightings per calendar month exhibiting one of the top-3 behaviors from Q(c)."
