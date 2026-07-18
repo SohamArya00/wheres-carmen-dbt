@@ -7,8 +7,8 @@
 
 ![dbt](https://img.shields.io/badge/dbt-Core-FF694B?logo=dbt&logoColor=white)
 ![Snowflake](https://img.shields.io/badge/Warehouse-Snowflake-29B5E8?logo=snowflake&logoColor=white)
-![Status](https://img.shields.io/badge/status-complete-brightgreen)
-![Tests](https://img.shields.io/badge/dbt%20tests-passing-success)
+![Status](https://img.shields.io/badge/status-verified%20against%20Snowflake-brightgreen)
+![Tests](https://img.shields.io/badge/dbt%20tests-33%2F33%20passing-success)
 
 **Author:** Soham Arya
 
@@ -26,8 +26,6 @@ Interpol's 8 regional HQs each filed sighting reports for Carmen Sandiego in the
 
 
 ## 🗺️ Project structure
-
-```
 wheres_carmen/
 ├── seeds/carmen_sightings/       # 8 raw regional CSVs (source of truth)
 ├── models/
@@ -40,11 +38,7 @@ wheres_carmen/
 │   └── stage_carmen_sighting.sql # shared staging logic, called 8x
 ├── sample_profiles.yml           # Snowflake connection template
 ├── packages.yml                  # dbt_utils dependency
-└── dbt_project.yml
-```
-
-
-## 🛠️ Tooling
+└── dbt_project.yml## 🛠️ Tooling
 
 | | |
 |---|---|
@@ -171,7 +165,15 @@ All four live as views in `models/marts/analytics/`, built on `fct_sightings`.
 | **(c)** Top 3 behaviors overall | `agg_top_3_behaviors` | Counts each `behavior` value, keeps top 3 |
 | **(d)** % of top-3 behaviors, per month | `agg_top_behavior_proportion_by_month` | References `agg_top_3_behaviors` directly (no hardcoded strings), computes proportion per month |
 
-> 📝 **After running this against Snowflake:** query `select * from agg_armed_jacket_no_hat_by_month order by sighting_month;` and drop your actual observation here (seasonality, a region driving the trend, etc.)
+> 📝 **Findings, run against Snowflake:**
+>
+> **(a)** Europe leads sightings in 5 of the 12 calendar months (May, Aug, Sep, Oct, Nov), the Americas lead in 4 (Jan, Mar, Apr, Jul), and Asia leads in 2 (Jun, Dec). No single region dominates the calendar; leadership shifts across three regions depending on the month.
+>
+> **(b)** The armed + jacket + no-hat proportion is strikingly flat across the year, ranging narrowly from 2.4% (November) to 4.7% (June). There's no strong seasonal spike; the combination stays roughly constant, hovering around 3.5-4% most months, with November as the one mild low point.
+>
+> **(c)** The top 3 behaviors are nearly tied: `out-of-control` (637), `complaining` (636), and `happy` (635), a gap of just 2 occurrences across all three.
+>
+> **(d)** Because (c) is such a tight three-way split, the proportion of sightings matching one of the top-3 behaviors is stable month to month too, around 12-15%, peaking slightly in May (15.3%) and dipping in October (12.1%).
 
 
 ## ⚠️ Known limitations
@@ -179,6 +181,7 @@ All four live as views in `models/marts/analytics/`, built on `fct_sightings`.
 - `dim_witnesses` is keyed on name alone. Two different people sharing a name would collapse to one row; the source data gives nothing else to disambiguate them.
 - `sighting_id` is a generated surrogate key (hash of witness/agent/date/location). Fully identical sightings across all of those fields would collapse to one row; not observed in spot-checks, but a theoretical edge case.
 - Test coverage covers `not_null` / `unique` / `relationships` on primary/foreign keys. No custom singular tests for domain rules (e.g. valid ISO country codes) given the scope of this exercise.
+- `agg_top_3_behaviors` ends in a `LIMIT 3`. Querying the view directly works fine, but `dbt show --select agg_top_3_behaviors` errors, since that command wraps previews in its own outer `LIMIT` clause which collides with the one already in the model. Cosmetic, not a data issue.
 
 
 ## ▶️ How to run
