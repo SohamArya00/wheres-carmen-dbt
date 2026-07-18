@@ -26,19 +26,17 @@ Interpol's 8 regional HQs each filed sighting reports for Carmen Sandiego in the
 
 ## 🗺️ Project structure
 
-wheres_carmen/
-├── seeds/carmen_sightings/       # 8 raw regional CSVs (source of truth)
-├── models/
-│   ├── staging/                  # 1 view per region, typed & cleaned
-│   ├── intermediate/             # unioned 1NF sighting log
-│   └── marts/
-│       ├── core/                 # normalized star schema (facts + dims)
-│       └── analytics/            # 4 views answering the assessment questions
-├── macros/
-│   └── stage_carmen_sighting.sql # shared staging logic, called 8x
-├── sample_profiles.yml           # Snowflake connection template
-├── packages.yml                  # dbt_utils dependency
-└── dbt_project.yml
+| Path | Contents |
+|---|---|
+| `seeds/carmen_sightings/` | 8 raw regional CSVs (source of truth) |
+| `models/staging/` | 1 view per region, typed & cleaned |
+| `models/intermediate/` | unioned 1NF sighting log |
+| `models/marts/core/` | normalized star schema (facts + dims) |
+| `models/marts/analytics/` | 4 views answering the assessment questions |
+| `macros/stage_carmen_sighting.sql` | shared staging logic, called 8x |
+| `sample_profiles.yml` | Snowflake connection template |
+| `packages.yml` | dbt_utils dependency |
+| `dbt_project.yml` | project config |'''
 
 
 ## 🛠️ Tooling
