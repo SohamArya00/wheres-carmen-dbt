@@ -24,8 +24,8 @@ Interpol's 8 regional HQs each filed sighting reports for Carmen Sandiego in the
 3. Unions and normalizes them into a proper star-schema-style fact/dimension model
 4. Answers 4 analytical questions Interpol actually cares about, as queryable views
 
-
 ## 🗺️ Project structure
+
 wheres_carmen/
 ├── seeds/carmen_sightings/       # 8 raw regional CSVs (source of truth)
 ├── models/
@@ -38,7 +38,10 @@ wheres_carmen/
 │   └── stage_carmen_sighting.sql # shared staging logic, called 8x
 ├── sample_profiles.yml           # Snowflake connection template
 ├── packages.yml                  # dbt_utils dependency
-└── dbt_project.yml## 🛠️ Tooling
+└── dbt_project.yml
+
+
+## 🛠️ Tooling
 
 | | |
 |---|---|
@@ -195,3 +198,4 @@ dbt docs generate && dbt docs serve   # optional: browsable lineage graph
 ```
 
 Connection setup: copy `sample_profiles.yml` into `~/.dbt/profiles.yml` (kept out of the repo since it holds credentials) and fill in your Snowflake account locator, user, and password from the setup script in the assessment brief.
+READMEEOF
